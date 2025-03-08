@@ -1,0 +1,424 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Heron's Triangles".  This program calculates the area of a triangle using Heron's formula.                   *
+     3                                  ; Copyright (C) 2025  Carlos Secas .          *
+     4                                  ;                                                                                                                           *
+     5                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     6                                  ;version 3 as published by the Free Software Foundation.  This program is distributed in the hope that it will be useful,   *
+     7                                  ;but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See   *
+     8                                  ;the GNU General Public License for more details A copy of the GNU General Public License v3 is available here:             *
+     9                                  ;<https://www.gnu.org/licenses/>.                                                                                           *
+    10                                  ;****************************************************************************************************************************
+    11                                  
+    12                                  
+    13                                  
+    14                                  
+    15                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
+    16                                  ;Author information
+    17                                  ;  Author name: Carlos Secas
+    18                                  ;  Author email: carlosJsecas@csu.fullerton.edu
+    19                                  ;  CWID: 886088269
+    20                                  ;  Class: 240-09 Section 09
+    21                                  ;
+    22                                  ;Program information
+    23                                  ;  Program name: Heron's Triangles
+    24                                  ;  Programming languages: One module in C, four in X86 Assembly, and one in Bash.
+    25                                  ;  Date program began: 2025-Mar-06
+    26                                  ;  Date of last update: 2025-Mar-07
+    27                                  ;  Files in this program: triangle.c, manager.asm, istriangle.asm, huron.asm, isfloat.asm, triangle.inc, r.sh
+    28                                  ;  Testing: Alpha testing completed.  All functions are correct.
+    29                                  ;  Status: Ready for release to customers
+    30                                  ;
+    31                                  ;Purpose
+    32                                  ;   This program calculates the area of a triangle given three side lengths using Heron's formula.
+    33                                  ;   It validates input, ensures the sides form a triangle, and computes the area accordingly.
+    34                                  ;
+    35                                  ;Devlopment
+    36                                  ;  This assembly code was developed using NASM in a Linux-based enviorment within Github Codespaces,
+    37                                  ;  accessed remotely from a Windows 10 system.  
+    38                                  ;
+    39                                  ;This file:
+    40                                  ;  File name: manager.asm
+    41                                  ;  Language: X86-64
+    42                                  ;  Max page width: 124 columns
+    43                                  ;  Assemble (standard): nasm -f elf64 -l manager.lis -o manager.o manager.asm
+    44                                  ;  Assemble (debug): nasm -f elf64 -gdwarf -l manage.lis -o manager.o manager.asm
+    45                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8½x11 paper
+    46                                  ;  Prototype of this function: extern double manager();
+    47                                  ; 
+    48                                  ;
+    49                                  ;
+    50                                  ;
+    51                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
+    52                                  
+    53                                  ;declarations
+    54                                  
+    55                                  %include "triangle.inc" ; Include macros
+     1                              <1> ;Information: This include file was first created to accompany the program Huron's Triangles.
+     2                              <1> ;This program calculates the area of a triangle using Heron's formula.
+     3                              <1> 
+     4                              <1> 
+     5                              <1> 
+     6                              <1> ;This is an include file for the program manager.asm.   File name: triangle.inc
+     7                              <1> 
+     8                              <1> 
+     9                              <1> 
+    10                              <1> %ifndef TRIANGLE_INC
+    11                              <1> %define TRIANGLE_INC
+    12                              <1> 
+    13                              <1> ;===== Backup General-Purpose Registers (GPRs) ==========================================================
+    14                              <1> 
+    15                              <1> %macro backup_gprs 0
+    16                              <1>     push rbp
+    17                              <1>     mov rbp, rsp
+    18                              <1>     push rbx
+    19                              <1>     push rcx
+    20                              <1>     push rdx
+    21                              <1>     push rdi
+    22                              <1>     push rsi
+    23                              <1>     push r8
+    24                              <1>     push r9
+    25                              <1>     push r10
+    26                              <1>     push r11
+    27                              <1>     push r12
+    28                              <1>     push r13
+    29                              <1>     push r14
+    30                              <1>     push r15
+    31                              <1>     pushf
+    32                              <1> %endmacro
+    33                              <1> 
+    34                              <1> ;===== Restore General-Purpose Registers (GPRs) ==========================================================
+    35                              <1> 
+    36                              <1> %macro restore_gprs 0
+    37                              <1>     popf
+    38                              <1>     pop r15
+    39                              <1>     pop r14
+    40                              <1>     pop r13
+    41                              <1>     pop r12
+    42                              <1>     pop r11
+    43                              <1>     pop r10
+    44                              <1>     pop r9
+    45                              <1>     pop r8
+    46                              <1>     pop rsi
+    47                              <1>     pop rdi
+    48                              <1>     pop rdx
+    49                              <1>     pop rcx
+    50                              <1>     pop rbx
+    51                              <1>     pop rbp
+    52                              <1> %endmacro
+    53                              <1> 
+    54                              <1> ;===== Backup Floating-Point and SSE Registers ==========================================================
+    55                              <1> 
+    56                              <1> %macro backup_fpu 0
+    57                              <1>     sub rsp, 16
+    58                              <1>     movdqu [rsp], xmm6
+    59                              <1>     sub rsp, 16
+    60                              <1>     movdqu [rsp], xmm7
+    61                              <1> %endmacro
+    62                              <1> 
+    63                              <1> ;===== Restore Floating-Point and SSE Registers ==========================================================
+    64                              <1> 
+    65                              <1> %macro restore_fpu 0
+    66                              <1>     movdqu xmm7, [rsp]
+    67                              <1>     add rsp, 16
+    68                              <1>     movdqu xmm6, [rsp]
+    69                              <1>     add rsp, 16
+    70                              <1> %endmacro
+    71                              <1> 
+    72                              <1> ;===== Display Personal Information ==========================================================
+    73                              <1> 
+    74                              <1> %macro display_info 0
+    75                              <1>     segment .data
+    76                              <1>     author_msg db 10, "This program is brought to you as a courtesy of", 10, 0
+    77                              <1>     name_msg db "Author: Carlos Secas", 10, 0
+    78                              <1>     cwid_msg db "CWID: 886088269", 10, 0
+    79                              <1>     email_msg db "Email: carlosJsecas@csu.fullerton.edu", 10, 0
+    80                              <1> 
+    81                              <1>     segment .text
+    82                              <1>     mov rdi, author_msg
+    83                              <1>     call printf
+    84                              <1>     mov rdi, name_msg
+    85                              <1>     call printf
+    86                              <1>     mov rdi, cwid_msg
+    87                              <1>     call printf
+    88                              <1>     mov rdi, email_msg
+    89                              <1>     call printf
+    90                              <1> %endmacro
+    91                              <1> 
+    92                              <1> %endif
+    56                                  global manager
+    57                                  extern isfloat
+    58                                  extern istriangle
+    59                                  extern huron
+    60                                  extern printf 
+    61                                  extern scanf
+    62                                  extern atof
+    63                                  
+    64                                  
+    65                                  
+    66                                  segment .data ; intialized data here
+    67 00000000 0A506C656173652065-     prompt_sides db 10, "Please enter the lengths of three sides of a triangle: ", 10,0
+    67 00000009 6E7465722074686520-
+    67 00000012 6C656E67746873206F-
+    67 0000001B 662074687265652073-
+    67 00000024 69646573206F662061-
+    67 0000002D 20747269616E676C65-
+    67 00000036 3A200A00           
+    68 0000003A 0A4572726F7220696E-     invalid_input_msg db 10, "Error input try again.", 10,0
+    68 00000043 707574207472792061-
+    68 0000004C 6761696E2E0A00     
+    69 00000053 0A5468616E6B20796F-     thank_you_msg db 10, "Thank you.", 10,0
+    69 0000005C 752E0A00           
+    70 00000060 0A546865736520696E-     valid_triange_msg db 10, "These inputs have been tested and they are sides of a valid triangle.", 10,0
+    70 00000069 707574732068617665-
+    70 00000072 206265656E20746573-
+    70 0000007B 74656420616E642074-
+    70 00000084 686579206172652073-
+    70 0000008D 69646573206F662061-
+    70 00000096 2076616C6964207472-
+    70 0000009F 69616E676C652E0A00 
+    71 000000A8 0A546865204875726F-     apply_huron_formula_msg db 10, "The Huron formula will be applied to find the area.", 10,0
+    71 000000B1 6E20666F726D756C61-
+    71 000000BA 2077696C6C20626520-
+    71 000000C3 6170706C6965642074-
+    71 000000CC 6F2066696E64207468-
+    71 000000D5 6520617265612E0A00 
+    72 000000DE 0A5468652061726561-     area_result_msg db 10, "The area is %lf sq units. This number will be returned to the caller module.", 10,0
+    72 000000E7 20697320256C662073-
+    72 000000F0 7120756E6974732E20-
+    72 000000F9 54686973206E756D62-
+    72 00000102 65722077696C6C2062-
+    72 0000010B 652072657475726E65-
+    72 00000114 6420746F2074686520-
+    72 0000011D 63616C6C6572206D6F-
+    72 00000126 64756C652E0A00     
+    73 0000012D 257300                  str_format db "%s", 0
+    74                                  
+    75                                  
+    76                                  segment .bss    ; Declare pointers to un-intialized space here
+    77 00000000 <res 00000008>          side1 resq 1
+    78 00000008 <res 00000008>          side2 resq 1
+    79 00000010 <res 00000008>          side3 resq 1
+    80 00000018 <res 00000020>          input_str resb 32
+    81 00000038 <res 00000008>          computed_area resq 1
+    82                                  
+    83                                  
+    84                                  segment .text
+    85                                  
+    86                                  
+    87                                  manager:
+    88                                  
+    89                                  backup_gprs ; Backup all GPR's
+    89 00000000 55                  <1>  push rbp
+    89 00000001 4889E5              <1>  mov rbp, rsp
+    89 00000004 53                  <1>  push rbx
+    89 00000005 51                  <1>  push rcx
+    89 00000006 52                  <1>  push rdx
+    89 00000007 57                  <1>  push rdi
+    89 00000008 56                  <1>  push rsi
+    89 00000009 4150                <1>  push r8
+    89 0000000B 4151                <1>  push r9
+    89 0000000D 4152                <1>  push r10
+    89 0000000F 4153                <1>  push r11
+    89 00000011 4154                <1>  push r12
+    89 00000013 4155                <1>  push r13
+    89 00000015 4156                <1>  push r14
+    89 00000017 4157                <1>  push r15
+    89 00000019 9C                  <1>  pushf
+    90                                  backup_fpu ; Backup all FPR's
+    90 0000001A 4883EC10            <1>  sub rsp, 16
+    90 0000001E F30F7F3424          <1>  movdqu [rsp], xmm6
+    90 00000023 4883EC10            <1>  sub rsp, 16
+    90 00000027 F30F7F3C24          <1>  movdqu [rsp], xmm7
+    91                                  display_info ; Print author details
+    91                              <1>  segment .data
+    91 00000130 0A546869732070726F- <1>  author_msg db 10, "This program is brought to you as a courtesy of", 10, 0
+    91 00000139 6772616D2069732062- <1>
+    91 00000142 726F7567687420746F- <1>
+    91 0000014B 20796F752061732061- <1>
+    91 00000154 20636F757274657379- <1>
+    91 0000015D 206F660A00          <1>
+    91 00000162 417574686F723A2043- <1>  name_msg db "Author: Carlos Secas", 10, 0
+    91 0000016B 61726C6F7320536563- <1>
+    91 00000174 61730A00            <1>
+    91 00000178 435749443A20383836- <1>  cwid_msg db "CWID: 886088269", 10, 0
+    91 00000181 3038383236390A00    <1>
+    91 00000189 456D61696C3A206361- <1>  email_msg db "Email: carlosJsecas@csu.fullerton.edu", 10, 0
+    91 00000192 726C6F734A73656361- <1>
+    91 0000019B 73406373752E66756C- <1>
+    91 000001A4 6C6572746F6E2E6564- <1>
+    91 000001AD 750A00              <1>
+    91                              <1> 
+    91                              <1>  segment .text
+    91 0000002C 48BF-               <1>  mov rdi, author_msg
+    91 0000002E [3001000000000000]  <1>
+    91 00000036 E8(00000000)        <1>  call printf
+    91 0000003B 48BF-               <1>  mov rdi, name_msg
+    91 0000003D [6201000000000000]  <1>
+    91 00000045 E8(00000000)        <1>  call printf
+    91 0000004A 48BF-               <1>  mov rdi, cwid_msg
+    91 0000004C [7801000000000000]  <1>
+    91 00000054 E8(00000000)        <1>  call printf
+    91 00000059 48BF-               <1>  mov rdi, email_msg
+    91 0000005B [8901000000000000]  <1>
+    91 00000063 E8(00000000)        <1>  call printf
+    92                                  
+    93                                  input_loop:
+    94                                  ; Print prompt_sides for user input
+    95 00000068 B800000000              mov rax, 0
+    96 0000006D 48BF-                   mov rdi, prompt_sides
+    96 0000006F [0000000000000000] 
+    97 00000077 E8(00000000)            call printf
+    98                                  
+    99                                  ; Read first input as string
+   100 0000007C B800000000              mov rax, 0
+   101 00000081 48BF-                   mov rdi, str_format
+   101 00000083 [2D01000000000000] 
+   102 0000008B 48BE-                   mov rsi, input_str
+   102 0000008D [1800000000000000] 
+   103 00000095 E8(00000000)            call scanf
+   104                                  
+   105                                  ; Validate first input using isfloat
+   106 0000009A 48BF-                   mov rdi, input_str ; Pass string address to isfloat
+   106 0000009C [1800000000000000] 
+   107 000000A4 E8(00000000)            call isfloat
+   108 000000A9 4883F800                cmp rax, 0
+   109 000000AD 0F84C4000000            jz invalid_input ; If invalid restart the process
+   110                                  
+   111                                  ; Convert to float using atof and store
+   112 000000B3 48BF-                   mov rdi, input_str
+   112 000000B5 [1800000000000000] 
+   113 000000BD E8(00000000)            call atof
+   114 000000C2 F20F110425-             movsd qword [side1], xmm0 ; atof returns result in xmm0
+   114 000000C7 [00000000]         
+   115                                  
+   116                                  ; Read second input as string
+   117 000000CB B800000000              mov rax, 0
+   118 000000D0 48BF-                   mov rdi, str_format
+   118 000000D2 [2D01000000000000] 
+   119 000000DA 48BE-                   mov rsi, input_str
+   119 000000DC [1800000000000000] 
+   120 000000E4 E8(00000000)            call scanf
+   121                                  
+   122                                  ; Validate using isfloat
+   123 000000E9 48BF-                   mov rdi, input_str
+   123 000000EB [1800000000000000] 
+   124 000000F3 E8(00000000)            call isfloat
+   125 000000F8 4883F800                cmp rax, 0
+   126 000000FC 7479                    jz invalid_input
+   127                                  
+   128                                  ; Convert the string to float using atof
+   129 000000FE 48BF-                   mov rdi, input_str
+   129 00000100 [1800000000000000] 
+   130 00000108 E8(00000000)            call atof
+   131 0000010D F20F110425-             movsd qword [side2], xmm0
+   131 00000112 [08000000]         
+   132                                  
+   133                                  ; Read third input as string
+   134 00000116 B800000000              mov rax, 0
+   135 0000011B 48BF-                   mov rdi, str_format
+   135 0000011D [2D01000000000000] 
+   136 00000125 48BE-                   mov rsi, input_str
+   136 00000127 [1800000000000000] 
+   137 0000012F E8(00000000)            call scanf
+   138                                  
+   139                                  ; Validate the third input using isfloat
+   140 00000134 48BF-                   mov rdi, input_str
+   140 00000136 [1800000000000000] 
+   141 0000013E E8(00000000)            call isfloat
+   142 00000143 4883F800                cmp rax, 0
+   143 00000147 742E                    jz invalid_input
+   144                                  
+   145                                  ; Convert the string to float using atof
+   146 00000149 48BF-                   mov rdi, input_str
+   146 0000014B [1800000000000000] 
+   147 00000153 E8(00000000)            call atof
+   148 00000158 F20F110425-             movsd qword [side3], xmm0
+   148 0000015D [10000000]         
+   149                                  
+   150 00000161 B800000000              mov rax, 0
+   151 00000166 48BF-                   mov rdi, thank_you_msg
+   151 00000168 [5300000000000000] 
+   152 00000170 E8(00000000)            call printf
+   153                                  
+   154                                  ; Continue the program
+   155 00000175 EB19                    jmp continue_execution
+   156                                  
+   157                                  invalid_input:
+   158 00000177 B800000000              mov rax, 0
+   159 0000017C 48BF-                   mov rdi, invalid_input_msg
+   159 0000017E [3A00000000000000] 
+   160 00000186 E8(00000000)            call printf
+   161 0000018B E9D8FEFFFF              jmp input_loop
+   162                                  
+   163                                  continue_execution:
+   164                                  ; Call istriangle to validate if the sides form a triangle
+   165 00000190 F20F100425-             movsd xmm0, [side1]
+   165 00000195 [00000000]         
+   166 00000199 F20F100C25-             movsd xmm1, [side2]
+   166 0000019E [08000000]         
+   167 000001A2 F20F101425-             movsd xmm2, [side3]
+   167 000001A7 [10000000]         
+   168 000001AB E8(00000000)            call istriangle
+   169                                  
+   170                                  ; If return value = 0 (invalid triangle)
+   171 000001B0 4883F800                cmp rax, 0
+   172 000001B4 74C1                    je invalid_input ; ask for input agian (not a triangle)
+   173                                  
+   174                                  
+   175                                  ; Print user that the triangle is valid
+   176 000001B6 B800000000              mov rax, 0
+   177 000001BB 48BF-                   mov rdi, valid_triange_msg
+   177 000001BD [6000000000000000] 
+   178 000001C5 E8(00000000)            call printf
+   179                                  
+   180                                  ; Compute area by using Huron
+   181 000001CA F20F100425-             movsd xmm0, qword [side1]
+   181 000001CF [00000000]         
+   182 000001D3 F20F100C25-             movsd xmm1, qword [side2]
+   182 000001D8 [08000000]         
+   183 000001DC F20F101425-             movsd xmm2, qword [side3]
+   183 000001E1 [10000000]         
+   184 000001E5 E8(00000000)            call huron 
+   185                                  
+   186                                  ; Store the computed area before calling printf
+   187 000001EA F20F110425-             movsd qword [computed_area], xmm0
+   187 000001EF [38000000]         
+   188                                  
+   189                                  
+   190                                  ; Print the area computed from Huron
+   191 000001F3 B800000000              mov rax, 0
+   192 000001F8 48BF-                   mov rdi, area_result_msg
+   192 000001FA [DE00000000000000] 
+   193 00000202 B801000000              mov rax, 1 ; 1 for the expected floating point #
+   194 00000207 E8(00000000)            call printf
+   195                                  
+   196                                  ; Restore xmm0 after printf modifies registers
+   197 0000020C F20F100425-             movsd xmm0, qword [computed_area]
+   197 00000211 [38000000]         
+   198                                  
+   199                                  
+   200                                  restore_fpu ; Restore FPR's
+   200 00000215 F30F6F3C24          <1>  movdqu xmm7, [rsp]
+   200 0000021A 4883C410            <1>  add rsp, 16
+   200 0000021E F30F6F3424          <1>  movdqu xmm6, [rsp]
+   200 00000223 4883C410            <1>  add rsp, 16
+   201                                  restore_gprs ; Restore GPR's
+   201 00000227 9D                  <1>  popf
+   201 00000228 415F                <1>  pop r15
+   201 0000022A 415E                <1>  pop r14
+   201 0000022C 415D                <1>  pop r13
+   201 0000022E 415C                <1>  pop r12
+   201 00000230 415B                <1>  pop r11
+   201 00000232 415A                <1>  pop r10
+   201 00000234 4159                <1>  pop r9
+   201 00000236 4158                <1>  pop r8
+   201 00000238 5E                  <1>  pop rsi
+   201 00000239 5F                  <1>  pop rdi
+   201 0000023A 5A                  <1>  pop rdx
+   201 0000023B 59                  <1>  pop rcx
+   201 0000023C 5B                  <1>  pop rbx
+   201 0000023D 5D                  <1>  pop rbp
+   202 0000023E C3                      ret
+   203                                  
+   204                                  
+   205                                  ;End of the function manager ====================================================================

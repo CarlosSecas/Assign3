@@ -1,0 +1,95 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Heron's Triangles".  This program calculates the area of a triangle using Heron's formula.                   *
+     3                                  ; Copyright (C) 2025  Carlos Secas .          *
+     4                                  ;                                                                                                                           *
+     5                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     6                                  ;version 3 as published by the Free Software Foundation.  This program is distributed in the hope that it will be useful,   *
+     7                                  ;but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See   *
+     8                                  ;the GNU General Public License for more details A copy of the GNU General Public License v3 is available here:             *
+     9                                  ;<https://www.gnu.org/licenses/>.                                                                                           *
+    10                                  ;****************************************************************************************************************************
+    11                                  
+    12                                  
+    13                                  
+    14                                  
+    15                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
+    16                                  ;Author information
+    17                                  ;  Author name: Carlos Secas
+    18                                  ;  Author email: carlosJsecas@csu.fullerton.edu
+    19                                  ;  CWID: 886088269
+    20                                  ;  Class: 240-09 Section 09
+    21                                  ;
+    22                                  ;Program information
+    23                                  ;  Program name: Heron's Triangles
+    24                                  ;  Programming languages: One module in C, four in X86 Assembly, and one in Bash.
+    25                                  ;  Date program began: 2025-Mar-06
+    26                                  ;  Date of last update: 2025-Mar-07
+    27                                  ;  Files in this program: triangle.c, manager.asm, istriangle.asm, huron.asm, isfloat.asm, triangle.inc, r.sh
+    28                                  ;  Testing: Alpha testing completed.  All functions are correct.
+    29                                  ;  Status: Ready for release to customers
+    30                                  ;
+    31                                  ;Purpose
+    32                                  ;   This program calculates the area of a triangle given three side lengths using Heron's formula.
+    33                                  ;   It validates input, ensures the sides form a triangle, and computes the area accordingly.
+    34                                  ;
+    35                                  ;Devlopment
+    36                                  ;  This assembly code was developed using NASM in a Linux-based enviorment within Github Codespaces,
+    37                                  ;  accessed remotely from a Windows 10 system.  
+    38                                  ;
+    39                                  ;This file:
+    40                                  ;  File name: manager.asm
+    41                                  ;  Language: X86-64
+    42                                  ;  Max page width: 124 columns
+    43                                  ;  Assemble (standard): nasm -f elf64 -l istriangle.lis -o istriangle.o istriangle.asm
+    44                                  ;  Assemble (debug): nasm -f elf64 -gdwarf -l istriangle.lis -o istriangle.o istriangle.asm
+    45                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8½x11 paper
+    46                                  ;  Prototype of this function: extern double istriangle();
+    47                                  ; 
+    48                                  ;
+    49                                  ;
+    50                                  ;
+    51                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
+    52                                  
+    53                                  ;declarations
+    54                                  
+    55                                  global istriangle 
+    56                                  
+    57                                  segment .data ; intialized data here
+    58                                  ;empty
+    59                                  
+    60                                  segment .bss    ; Declare pointers to un-intialized space here
+    61                                  ;empty
+    62                                  
+    63                                  segment .text
+    64                                  
+    65                                  istriangle:
+    66                                  ; Use Triangle inequality theorem
+    67                                  ; Check if (a + b) > c
+    68 00000000 F20F10D8                movsd xmm3, xmm0 ; load a into xmm3
+    69 00000004 F20F58D9                addsd xmm3, xmm1 ; Add b to a
+    70 00000008 660F2EDA                ucomisd xmm3, xmm2 ; Compare xmm3 (a + b) with xmm2 (c)
+    71 0000000C 7622                    jbe not_triangle ; If (a + b) <= c then its not a triangle
+    72                                  
+    73                                  ; Check if (a + c) > b
+    74 0000000E F20F10D8                movsd xmm3, xmm0 ; Load a to xmm3
+    75 00000012 F20F58D9                addsd xmm3, xmm1 ; Add c to a
+    76 00000016 660F2EDA                ucomisd xmm3, xmm2 ; Compare xmm3 (a + c) with xmm2 (b)
+    77 0000001A 7614                    jbe not_triangle ; If (a + c) <= b then its not a triangle
+    78                                  
+    79                                  ; Check if (b + c) > a
+    80 0000001C F20F10D8                movsd xmm3, xmm0 ; Load b into xmm3
+    81 00000020 F20F58D9                addsd xmm3, xmm1 ; Add c to b
+    82 00000024 660F2EDA                ucomisd xmm3, xmm2 ; compare xmm3 (b + c) with xmm2 (a)
+    83 00000028 7606                    jbe not_triangle ; if (b + c) <=a then its not a triangle
+    84                                  
+    85                                  ; If all conditions are passed then return 1 for valid triangle
+    86 0000002A B801000000              mov rax, 1
+    87 0000002F C3                      ret
+    88                                  
+    89                                  not_triangle:
+    90                                  ; Return 0 if any condition failed
+    91 00000030 4831C0                  xor rax, rax
+    92 00000033 C3                      ret
+    93                                  
+    94                                  
+    95                                  ;End of the function istriangle ====================================================================

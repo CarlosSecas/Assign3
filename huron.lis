@@ -1,0 +1,122 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Heron's Triangles".  This program calculates the area of a triangle using Heron's formula.                   *
+     3                                  ; Copyright (C) 2025  Carlos Secas .          *
+     4                                  ;                                                                                                                           *
+     5                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     6                                  ;version 3 as published by the Free Software Foundation.  This program is distributed in the hope that it will be useful,   *
+     7                                  ;but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See   *
+     8                                  ;the GNU General Public License for more details A copy of the GNU General Public License v3 is available here:             *
+     9                                  ;<https://www.gnu.org/licenses/>.                                                                                           *
+    10                                  ;****************************************************************************************************************************
+    11                                  
+    12                                  
+    13                                  
+    14                                  
+    15                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
+    16                                  ;Author information
+    17                                  ;  Author name: Carlos Secas
+    18                                  ;  Author email: carlosJsecas@csu.fullerton.edu
+    19                                  ;  CWID: 886088269
+    20                                  ;  Class: 240-09 Section 09
+    21                                  ;
+    22                                  ;Program information
+    23                                  ;  Program name: Heron's Triangles
+    24                                  ;  Programming languages: One module in C, four in X86 Assembly, and one in Bash.
+    25                                  ;  Date program began: 2025-Mar-06
+    26                                  ;  Date of last update: 2025-Mar-07
+    27                                  ;  Files in this program: triangle.c, manager.asm, istriangle.asm, huron.asm, isfloat.asm, triangle.inc, r.sh
+    28                                  ;  Testing: Alpha testing completed.  All functions are correct.
+    29                                  ;  Status: Ready for release to customers
+    30                                  ;
+    31                                  ;Purpose
+    32                                  ;   This program calculates the area of a triangle given three side lengths using Heron's formula.
+    33                                  ;   It validates input, ensures the sides form a triangle, and computes the area accordingly.
+    34                                  ;
+    35                                  ;Devlopment
+    36                                  ;  This assembly code was developed using NASM in a Linux-based enviorment within Github Codespaces,
+    37                                  ;  accessed remotely from a Windows 10 system.  
+    38                                  ;
+    39                                  ;This file:
+    40                                  ;  File name: huron.asm
+    41                                  ;  Language: X86-64
+    42                                  ;  Max page width: 124 columns
+    43                                  ;  Assemble (standard): nasm -f elf64 -l huron.lis -o huron.o huron.asm
+    44                                  ;  Assemble (debug): nasm -f elf64 -gdwarf -l huron.lis -o huron.o huron.asm
+    45                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8½x11 paper
+    46                                  ;  Prototype of this function: extern double huron();
+    47                                  ; 
+    48                                  ;
+    49                                  ;
+    50                                  ;
+    51                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
+    52                                  
+    53                                  ;declarations
+    54                                  
+    55                                  global huron
+    56                                  
+    57                                  segment .data ; intialized data here
+    58 00000000 000000000000E03F        one_half dq 0.5
+    59 00000008 0000000000000000        zero dq 0.0
+    60                                  
+    61                                  segment .bss ; Declare pointers to un-intialized space here
+    62                                  ;empty
+    63                                  
+    64                                  segment .text
+    65                                  
+    66                                  huron:
+    67                                  
+    68                                  ; Compute s = 0.5(a + b +c)
+    69 00000000 F20F10D8                movsd xmm3, xmm0 ; Load a into xmm3
+    70 00000004 F20F58D9                addsd xmm3, xmm1 ; Add b to a
+    71 00000008 F20F58DA                addsd xmm3, xmm2 ; Add c to (a + b)
+    72 0000000C F20F102425-             movsd xmm4, qword [one_half] ; xmm4 = 0.5
+    72 00000011 [00000000]         
+    73 00000015 F20F59DC                mulsd xmm3, xmm4 ; xmm3 = (a + b + c) * 0.5
+    74                                  
+    75                                  ; Compute (s - a)
+    76 00000019 F20F10F3                movsd xmm6, xmm3 ; xmm6 = s
+    77 0000001D F20F5CF0                subsd xmm6, xmm0 ; s - a
+    78                                  
+    79                                  ; Compute (s - b)
+    80 00000021 F20F10FB                movsd xmm7, xmm3 ; xmm7 = s
+    81 00000025 F20F5CF9                subsd xmm7, xmm1 ; s - b
+    82                                  
+    83                                  ; Compute (s - c)
+    84 00000029 F2440F10C3              movsd xmm8, xmm3 ; xmm8 = s
+    85 0000002E F2440F5CC2              subsd xmm8, xmm2 ; s - c
+    86                                  
+    87 00000033 F2440F100C25-           movsd xmm9, qword [zero] ; Load zero to xmm9 register for opperand size match
+    87 00000039 [08000000]         
+    88                                  
+    89                                  ; Check if (s - a) > 0
+    90 0000003D 66410F2EF1              ucomisd xmm6, xmm9
+    91 00000042 7627                    jbe return_nan
+    92                                  
+    93                                  ; Check if (s - b) > 0
+    94 00000044 66410F2EF9              ucomisd xmm7, xmm9
+    95 00000049 7620                    jbe return_nan
+    96                                  
+    97                                  ; Check if (s - c) > 0
+    98 0000004B 66450F2EC1              ucomisd xmm8, xmm9
+    99 00000050 7619                    jbe return_nan
+   100                                  
+   101                                  ; Compute s * (s - a) * (s - b) * (s - c)
+   102 00000052 F20F59DE                mulsd xmm3, xmm6 ; s * (s - a)
+   103 00000056 F20F59DF                mulsd xmm3, xmm7 ; s * (s - b)
+   104 0000005A F2410F59D8              mulsd xmm3, xmm8 ; s * (s - c)
+   105                                  
+   106                                  ; Check if the result is positive before computing sqrt
+   107 0000005F 66410F2ED9              ucomisd xmm3, xmm9
+   108 00000064 7605                    jbe return_nan ; if result <= 0 then return NaN
+   109                                  
+   110                                  ; Compute sqrt(s * (s - a) * (s - b) * (s - c))
+   111 00000066 F20F51C3                sqrtsd xmm0, xmm3 ; xmm0 = sqrt(xmm3)
+   112                                  
+   113                                  ; Return area in xmm0
+   114 0000006A C3                      ret
+   115                                  
+   116                                  return_nan:
+   117 0000006B F2410F10C1              movsd xmm0, xmm9 ; Return 0.0 instead of Nan
+   118 00000070 C3                      ret
+   119                                  
+   120                                  ;End of the function huron ====================================================================
