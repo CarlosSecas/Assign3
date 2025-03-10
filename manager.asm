@@ -23,7 +23,7 @@
 ;  Program name: Heron's Triangles
 ;  Programming languages: One module in C, four in X86 Assembly, and one in Bash.
 ;  Date program began: 2025-Mar-06
-;  Date of last update: 2025-Mar-07
+;  Date of last update: 2025-Mar-09
 ;  Files in this program: triangle.c, manager.asm, istriangle.asm, huron.asm, isfloat.asm, triangle.inc, r.sh
 ;  Testing: Alpha testing completed.  All functions are correct.
 ;  Status: Ready for release to customers
@@ -70,14 +70,17 @@ thank_you_msg db 10, "Thank you.", 10,0
 valid_triange_msg db 10, "These inputs have been tested and they are sides of a valid triangle.", 10,0
 apply_huron_formula_msg db 10, "The Huron formula will be applied to find the area.", 10,0
 area_result_msg db 10, "The area is %lf sq units. This number will be returned to the caller module.", 10,0
+invalid_triangle_msg db 10, "These inputs have been tested and they are not the sides of a valid triangle.", 10,0
+rerun_msg db 10, "You may run this program again with the valid triangle numbers.", 10,0
 str_format db "%s", 0
+neg_one dq -1.0
 
 
 segment .bss    ; Declare pointers to un-intialized space here
 side1 resq 1
 side2 resq 1
 side3 resq 1
-input_str resb 32
+input_str resb 64
 computed_area resq 1
 
 
@@ -169,7 +172,7 @@ call istriangle
 
 ; If return value = 0 (invalid triangle)
 cmp rax, 0
-je invalid_input ; ask for input agian (not a triangle)
+je handle_invalid_triangle ; Print message and return -1
 
 
 ; Print user that the triangle is valid
@@ -199,5 +202,22 @@ movsd xmm0, qword [computed_area]
 
 restore_fpu ; Restore FPR's
 restore_gprs ; Restore GPR's
+ret
+
+handle_invalid_triangle:
+; Print the invalid triangles msg
+mov rax, 0
+mov rdi, invalid_triangle_msg
+call printf
+
+; Print the re-run msg
+mov rax, 0
+mov rdi, rerun_msg
+call printf
+
+movsd xmm0, qword [neg_one] ; Return -1 to show failure
+
+restore_fpu ; Restore FPR's before returning
+restore_gprs ; Restore GPR's before returning
 ret
 ;End of the function manager ====================================================================

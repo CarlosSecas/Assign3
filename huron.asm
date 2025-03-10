@@ -23,7 +23,7 @@
 ;  Program name: Heron's Triangles
 ;  Programming languages: One module in C, four in X86 Assembly, and one in Bash.
 ;  Date program began: 2025-Mar-06
-;  Date of last update: 2025-Mar-07
+;  Date of last update: 2025-Mar-09
 ;  Files in this program: triangle.c, manager.asm, istriangle.asm, huron.asm, isfloat.asm, triangle.inc, r.sh
 ;  Testing: Alpha testing completed.  All functions are correct.
 ;  Status: Ready for release to customers

@@ -17,7 +17,7 @@
 //Program name: Huron’s Triangles
 //Programming languages: One module in C, four in X86 Assembly, and one in Bash.
 //Date program began: 2025-Mar-06
-//Date of last update: 2025-Mar-07
+//Date of last update: 2025-Mar-09
 //Files in this program: triangle.c, manager.asm, istriangle.asm, huron.asm, isfloat.asm, triangle.inc, r.sh
 //Testing: Alpha testing completed. All functions work correctly.
 //Status: Ready for release to the customers
@@ -60,7 +60,15 @@ int main(void) {
     double count = 0;
     count = manager();
 
+    // Print only if main recieves -1 for failure
+    if (count == -1.0) {
+        printf("\nThe main function has recieved this number %.1f, and will keep it for a while.\n", (double)count);
+        printf("\nA -1 will be returned to the operating system.");
+        return -1;
+    }
+
     printf("\nThe main function has received this number %lf, and will keep it for a while\n",count);
     printf("\nThank you %s, Your patronage is appreciated.\n", name);
-    printf("\nA zero will not be return to the operating system\n");
+    printf("\nA zero will not be return to the operating system.\n");
+    return 0;
 }
